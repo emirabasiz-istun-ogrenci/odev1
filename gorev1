@@ -1,0 +1,70 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Frekans Değerleri
+f0 = 157
+f1 = f0
+f2 = f0 / 2
+f3 = 10 * f0
+
+# Örnekleme Frekansı (Nyquist kriteri: fs > 2*f_max)
+# f_max = 1570 Hz. Kusursuz çizim için 20 katı seçildi.
+fs = 20 * f3 # 31400 Hz
+
+# Dinamik Zaman Pencereleri (Her biri için tam 3 periyotluk süre)
+t1 = np.arange(0, 3/f1, 1/fs)
+t2 = np.arange(0, 3/f2, 1/fs)
+t3 = np.arange(0, 3/f3, 1/fs)
+
+# Sinyallerin Oluşturulması
+y1 = np.sin(2 * np.pi * f1 * t1)
+y2 = np.sin(2 * np.pi * f2 * t2)
+y3 = np.sin(2 * np.pi * f3 * t3)
+
+# 1. BÖLÜM: 3 Sinyalin Alt Alta Çizdirilmesi (Subplot)
+fig1, axs = plt.subplots(3, 1, figsize=(10, 8))
+fig1.suptitle('3 Farklı Frekansta İşaret (3 Tam Periyot)')
+
+# f1 grafiği
+axs[0].plot(t1, y1, 'b')
+axs[0].set_title(f'İşaret 1: f1 = {f1} Hz')
+axs[0].set_xlabel('Zaman (s)')
+axs[0].set_ylabel('Genlik')
+axs[0].grid(True)
+
+# f2 grafiği
+axs[1].plot(t2, y2, 'g')
+axs[1].set_title(f'İşaret 2: f2 = {f2} Hz')
+axs[1].set_xlabel('Zaman (s)')
+axs[1].set_ylabel('Genlik')
+axs[1].grid(True)
+
+# f3 grafiği
+axs[2].plot(t3, y3, 'r')
+axs[2].set_title(f'İşaret 3: f3 = {f3} Hz')
+axs[2].set_xlabel('Zaman (s)')
+axs[2].set_ylabel('Genlik')
+axs[2].grid(True)
+
+plt.tight_layout()
+plt.show()
+
+# 2. BÖLÜM: 3 İşaretin Toplamının Çizdirilmesi
+# Toplamı gösterebilmek için hepsi için ortak bir zaman eksenine ihtiyaç vardır.
+# Tüm sinyallerin döngüsünü görmek için en düşük frekanslı sinyalin (f2) süresi baz alınmıştır.
+t_sum = np.arange(0, 3/f2, 1/fs)
+
+y1_sum_component = np.sin(2 * np.pi * f1 * t_sum)
+y2_sum_component = np.sin(2 * np.pi * f2 * t_sum)
+y3_sum_component = np.sin(2 * np.pi * f3 * t_sum)
+
+y_sum = y1_sum_component + y2_sum_component + y3_sum_component
+
+plt.figure(figsize=(10, 4))
+plt.plot(t_sum, y_sum, 'm')
+plt.title('3 İşaretin Toplamı')
+plt.xlabel('Zaman (s)')
+plt.ylabel('Genlik')
+plt.grid(True)
+plt.tight_layout()
+plt.show()
