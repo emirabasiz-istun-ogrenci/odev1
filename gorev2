@@ -1,0 +1,87 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import ipywidgets as widgets
+from IPython.display import Audio, display, clear_output
+
+# 1. DTMF Frekans Sözlüğü
+DTMF_FREQS = {
+    '1': (697, 1209), '2': (697, 1336), '3': (697, 1477), 'A': (697, 1633),
+    '4': (770, 1209), '5': (770, 1336), '6': (770, 1477), 'B': (770, 1633),
+    '7': (852, 1209), '8': (852, 1336), '9': (852, 1477), 'C': (852, 1633),
+    '*': (941, 1209), '0': (941, 1336), '#': (941, 1477), 'D': (941, 1633)
+}
+
+# 2. Parametreler
+fs = 8000  # Örnekleme Frekansı (Hz)
+T = 0.3    # Sinyal Süresi (Saniye)
+t = np.arange(0, T, 1/fs) # Zaman vektörü
+
+# Çıktıların (Grafik ve Ses) gösterileceği alan
+out = widgets.Output()
+
+# 3. Butona Tıklanınca Çalışacak Fonksiyon
+def on_button_click(b):
+    with out:
+        clear_output(wait=True) # Önceki grafiği temizle
+        key = b.description     # Hangi butona basıldığını al
+        f_low, f_high = DTMF_FREQS[key]
+        
+        # Sinyal Üretimi ve Normalizasyon
+        signal = np.sin(2 * np.pi * f_low * t) + np.sin(2 * np.pi * f_high * t)
+        signal = signal * 0.5 
+        
+        # Grafikleri Çizdirme
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 4))
+        
+        # Zaman Domaini Grafiği
+        ax1.plot(t[:200], signal[:200], color='blue')
+        ax1.set_title(f"Zaman Domaini: '{key}' Tuşu Sinyali")
+        ax1.set_xlabel("Zaman (s)")
+        ax1.set_ylabel("Genlik")
+        ax1.grid(True)
+        
+        # Frekans Domaini (FFT) Grafiği - Ödevdeki Artı Puan Kısmı
+        fft_val = np.abs(np.fft.fft(signal))
+        freqs = np.fft.fftfreq(len(signal), 1/fs)
+        mask = (freqs > 0) & (freqs < 2000) # Sadece 0-2000 Hz arasını göster
+        
+        ax2.plot(freqs[mask], fft_val[mask], color='red')
+        ax2.set_title(f"Frekans Domaini (FFT) - Baskın 2 Frekans")
+        ax2.set_xlabel("Frekans (Hz)")
+        ax2.set_ylabel("Büyüklük")
+        ax2.grid(True)
+        
+        plt.tight_layout()
+        plt.show()
+        
+        # Sesi Oynatıcı Widget'ı Göster (Otomatik çalar)
+        display(Audio(signal, rate=fs, autoplay=True))
+
+# 4. Arayüz (UI) Tasarımı (Butonların Oluşturulması)
+keys = [
+    ['1', '2', '3', 'A'],
+    ['4', '5', '6', 'B'],
+    ['7', '8', '9', 'C'],
+    ['*', '0', '#', 'D']
+]
+
+vbox_elements = []
+for row in keys:
+    hbox_elements = []
+    for key in row:
+        # Her bir tuş için buton oluştur
+        btn = widgets.Button(description=key, layout=widgets.Layout(width='60px', height='60px'))
+        btn.style.button_color = '#e0e0e0'
+        btn.style.font_weight = 'bold'
+        # Butona tıklama olayını fonksiyona bağla
+        btn.on_click(on_button_click)
+        hbox_elements.append(btn)
+    # Butonları yatayda (HBox) yan yana diz
+    vbox_elements.append(widgets.HBox(hbox_elements))
+
+# Yatay satırları dikeyde (VBox) alt alta diz
+ui = widgets.VBox(vbox_elements)
+
+# Arayüzü ve çıktı ekranını Colab'de göster
+display(widgets.HTML("<h3>DTMF Sinyal Sentezleyici</h3><p>Sinyal üretmek için aşağıdaki tuşlara tıklayın:</p>"))
+display(ui, out)
